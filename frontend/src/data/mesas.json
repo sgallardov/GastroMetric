@@ -1,0 +1,26 @@
+[
+    { "id_mesa": 1, "numero_mesa": 1, "estado": "libre", "capacidad": 4, "pedidos": [] },
+    { 
+    "id_mesa": 2, 
+    "numero_mesa": 2, 
+    "estado": "ocupada", 
+    "capacidad": 2,
+    "pedidos": [
+        { "nombre": "Hamburguesa Clásica", "cantidad": 2, "precio": 12990 },
+        { "nombre": "Coca-Cola", "cantidad": 2, "precio": 2500 }
+    ]
+    },
+    { "id_mesa": 3, "numero_mesa": 3, "estado": "libre", "capacidad": 6, "pedidos": [] },
+    { 
+    "id_mesa": 4, 
+    "numero_mesa": 4, 
+    "estado": "ocupada", 
+    "capacidad": 4,
+    "pedidos": [
+        { "nombre": "Pizza Margarita", "cantidad": 1, "precio": 15990 },
+        { "nombre": "Limonada Natural", "cantidad": 3, "precio": 3500 }
+    ]
+    },
+    { "id_mesa": 5, "numero_mesa": 5, "estado": "libre", "capacidad": 2, "pedidos": [] },
+    { "id_mesa": 6, "numero_mesa": 6, "estado": "ocupada", "capacidad": 8, "pedidos": [] }
+]
