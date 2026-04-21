@@ -1,28 +1,45 @@
-// 1. IMPORTACIONES
+// 1. IMPORTACIONES DE AMBOS MÓDULOS
 import React from 'react';
-// Importamos el componente visual que acabamos de crear
-import MapaMesas from './components/MapaMesas';
+import { TomaDePedidos } from './components/TomaDePedidos';
+import MapaMesas from './components/MapaMesas'; // Importación de Vitto (sin llaves porque probablemente usó export default)
 
 function App() {
-  // 2. RENDERIZADO DEL ESQUELETO DE LA PÁGINA
   return (
-    // Contenedor "Raíz":
-    // min-h-screen asegura que el fondo gris ocupe siempre al menos el 100% de la altura de la pantalla
-    <div className="min-h-screen bg-gray-200 p-8">
+    <div className="min-h-screen bg-gray-50 p-6 font-sans">
       
-      {/* Contenedor centralizado: 
-          max-w-5xl limita el ancho máximo para que no se estire demasiado en monitores gigantes.
-          mx-auto centra automáticamente este contenedor en el medio de la pantalla. */}
-      <div className="max-w-5xl mx-auto">
+      {/* EL ENCABEZADO (Diseño de Tiare) */}
+      <header className="max-w-6xl mx-auto mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-800">GastroMetric</h1>
+          <p className="text-orange-500 font-medium mt-1">Módulos Integrados (Fase 1)</p>
+        </div>
+        <div className="bg-orange-100 text-orange-800 px-4 py-2 rounded-full text-sm font-semibold">
+          Garzón activo
+        </div>
+      </header>
+
+      {/* EL CONTENIDO PRINCIPAL (Ambos componentes unidos) */}
+      <main className="max-w-6xl mx-auto flex flex-col gap-12">
         
-        {/* Aquí es donde "llamamos" o "montamos" nuestro componente.
-            React tomará todo el código de MapaMesas.jsx y lo inyectará exactamente en esta línea. */}
-        <MapaMesas />
-        
-      </div>
+        {/* Sección de Vitto */}
+        <section>
+          <h2 className="text-2xl font-bold mb-4 text-gray-700 border-b-2 border-gray-200 pb-2">
+            Paso 1: Estado del Comedor
+          </h2>
+          <MapaMesas />
+        </section>
+
+        {/* Sección de Tiare */}
+        <section>
+          <h2 className="text-2xl font-bold mb-4 text-gray-700 border-b-2 border-gray-200 pb-2">
+            Paso 2: Tomar Pedido
+          </h2>
+          <TomaDePedidos />
+        </section>
+
+      </main>
     </div>
   );
 }
 
-// Exportamos App para que el archivo principal de Vite (main.jsx) lo inicie
 export default App;
