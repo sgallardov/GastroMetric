@@ -72,7 +72,7 @@ class Producto(Base):
 class Mesa(Base):
     __tablename__ = "mesa"
     id_mesa = Column(Integer, primary_key=True)
-    numero_mesa = Column(Integer, nullable=False)
+    numero_mesa = Column(Integer, nullable=False, unique=True)
     estado_mesa_id_estmes = Column(SMALLINT, ForeignKey("estado_mesa.id_estmes"))
 
 class Pedido(Base):

@@ -159,6 +159,11 @@ def listar_mesas(db: Session = Depends(get_db)):
 @app.post("/mesas/", response_model=schemas.MesaResponse)
 def crear_mesa(mesa: schemas.MesaCreate, db: Session = Depends(get_db)):
     """Permite registrar una nueva mesa física en el local."""
+    # Validar si el número de mesa ya existe
+    existe = db.query(models.Mesa).filter(models.Mesa.numero_mesa == mesa.numero_mesa).first()
+    if existe:
+        raise HTTPException(status_code=400, detail="El número de mesa ya está registrado.")
+        
     nueva_mesa = models.Mesa(**mesa.model_dump())
     db.add(nueva_mesa)
     db.commit()
@@ -181,20 +186,28 @@ def actualizar_estado_mesa(id_mesa: int, estado_id: int, db: Session = Depends(g
 # 6. MÓDULO TRANSACCIONAL (Ventas)
 # ==========================================
 
-@app.post("/pedidos/", response_model=schemas.PedidoResponse)
-def abrir_mesa(pedido: schemas.PedidoCreate, db: Session = Depends(get_db)):
+@app.post("/mesas/{mesa_id}/abrir", response_model=schemas.PedidoResponse)
+def abrir_mesa(mesa_id: int, db: Session = Depends(get_db)):
     """
-    Abre un nuevo pedido en una mesa específica.
+    Abre la cuenta de una mesa específica.
     Por regla de negocio, el backend asigna automáticamente el estado "Pendiente".
     """
     # 1. Verificamos que la mesa física exista en el restaurante
-    mesa = db.query(models.Mesa).filter(models.Mesa.id_mesa == pedido.mesa_id_mesa).first()
+    mesa = db.query(models.Mesa).filter(models.Mesa.id_mesa == mesa_id).first()
     if not mesa:
         raise HTTPException(status_code=404, detail="La mesa no existe.")
+        
+    # Verificar si ya tiene un pedido pendiente
+    pedido_activo = db.query(models.Pedido).filter(
+        models.Pedido.mesa_id_mesa == mesa_id,
+        models.Pedido.estado_pago_id_estpag == 2
+    ).first()
+    if pedido_activo:
+        raise HTTPException(status_code=400, detail="La mesa ya está abierta.")
     
     # 2. Creamos el pedido forzando el estado Pendiente (2)
     nuevo_pedido = models.Pedido(
-        mesa_id_mesa=pedido.mesa_id_mesa,
+        mesa_id_mesa=mesa_id,
         estado_pago_id_estpag=2  # Controlado 100% por el backend
     )
     
@@ -208,28 +221,34 @@ def abrir_mesa(pedido: schemas.PedidoCreate, db: Session = Depends(get_db)):
     
     return nuevo_pedido
 
-@app.get("/pedidos/{pedido_id}", response_model=schemas.PedidoResponse)
-def obtener_resumen_pedido(pedido_id: int, db: Session = Depends(get_db)):
+@app.get("/mesas/{mesa_id}/cuenta", response_model=schemas.PedidoResponse)
+def obtener_resumen_cuenta(mesa_id: int, db: Session = Depends(get_db)):
     """
     Trae el resumen completo de una mesa: qué productos ha pedido, 
     las cantidades y el estado de pago gracias a las relaciones de SQLAlchemy.
     """
-    pedido = db.query(models.Pedido).filter(models.Pedido.id_pedido == pedido_id).first()
+    pedido = db.query(models.Pedido).filter(
+        models.Pedido.mesa_id_mesa == mesa_id,
+        models.Pedido.estado_pago_id_estpag == 2
+    ).first()
     
     if not pedido:
-        raise HTTPException(status_code=404, detail="El pedido no existe.")
+        raise HTTPException(status_code=404, detail="La mesa no tiene una cuenta abierta.")
         
     return pedido
 
-@app.post("/pedidos/{pedido_id}/detalles/", response_model=schemas.DetallePedidoResponse)
-def agregar_item_a_pedido(pedido_id: int, item: schemas.DetallePedidoCreate, db: Session = Depends(get_db)):
+@app.post("/mesas/{mesa_id}/productos", response_model=schemas.DetallePedidoResponse)
+def agregar_item_a_mesa(mesa_id: int, item: schemas.DetallePedidoCreate, db: Session = Depends(get_db)):
     """
-    Agrega un producto a la cuenta, descuenta stock y congela el precio actual.
+    Agrega un producto a la cuenta de la mesa, descuenta stock y congela el precio actual.
     """
-    # 1. Validar pedido
-    pedido = db.query(models.Pedido).filter(models.Pedido.id_pedido == pedido_id).first()
+    # 1. Buscar la cuenta abierta de la mesa
+    pedido = db.query(models.Pedido).filter(
+        models.Pedido.mesa_id_mesa == mesa_id,
+        models.Pedido.estado_pago_id_estpag == 2
+    ).first()
     if not pedido:
-        raise HTTPException(status_code=404, detail="Pedido no encontrado.")
+        raise HTTPException(status_code=404, detail="La mesa no tiene una cuenta abierta.")
 
     # 2. Validar producto y stock
     producto = db.query(models.Producto).filter(models.Producto.id_producto == item.producto_id_producto).first()
@@ -238,7 +257,7 @@ def agregar_item_a_pedido(pedido_id: int, item: schemas.DetallePedidoCreate, db:
 
     # 3. Transacción: Crear detalle congelando el precio actual
     nuevo_detalle = models.DetallePedido(
-        pedido_id_pedido=pedido_id,
+        pedido_id_pedido=pedido.id_pedido,
         producto_id_producto=item.producto_id_producto,
         cantidad_detped=item.cantidad_detped,
         precio_detped=producto.precio_producto, 
@@ -306,20 +325,29 @@ def calcular_checkout_mesa(mesa_id: int, db: Session = Depends(get_db)):
 # 7. MÓDULO DE AUDITORÍA Y CANCELACIONES
 # ==========================================
 
-@app.post("/pedidos/{pedido_id}/detalles/{detalle_id}/cancelar", response_model=schemas.DetallePedidoResponse)
-def cancelar_item_pedido(
-    pedido_id: int, 
+@app.post("/mesas/{mesa_id}/productos/{detalle_id}/cancelar", response_model=schemas.DetallePedidoResponse)
+def cancelar_item_mesa(
+    mesa_id: int, 
     detalle_id: int, 
     cancelacion: schemas.CancelacionDetalleRequest, 
     db: Session = Depends(get_db)
 ):
     """
-    Cancela un ítem del pedido, devuelve el stock y guarda la justificación en auditoría.
+    Cancela un ítem de la mesa, devuelve el stock y guarda la justificación en auditoría.
     """
+    # Buscar el pedido activo de la mesa
+    pedido = db.query(models.Pedido).filter(
+        models.Pedido.mesa_id_mesa == mesa_id,
+        models.Pedido.estado_pago_id_estpag == 2
+    ).first()
+    
+    if not pedido:
+        raise HTTPException(status_code=404, detail="La mesa no tiene una cuenta abierta.")
+
     # 1. Buscar el detalle del pedido
     detalle = db.query(models.DetallePedido).filter(
         models.DetallePedido.id_detped == detalle_id,
-        models.DetallePedido.pedido_id_pedido == pedido_id
+        models.DetallePedido.pedido_id_pedido == pedido.id_pedido
     ).first()
     
     if not detalle:
@@ -341,7 +369,7 @@ def cancelar_item_pedido(
         justificacion=cancelacion.justificacion,
         usuario_id_usuario=cancelacion.usuario_id,
         accion_id_tipacc=1, # 1 = Eliminar Producto
-        pedido_id_pedido=pedido_id,
+        pedido_id_pedido=pedido.id_pedido,
         producto_id_producto=detalle.producto_id_producto
     )
     db.add(nuevo_registro)

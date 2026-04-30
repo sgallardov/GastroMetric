@@ -109,13 +109,6 @@ class PedidoBase(BaseModel):
     mesa_id_mesa: int
     # ELIMINADO: estado_pago_id_estpag ya no está en la base para que no lo pida Swagger
 
-class PedidoCreate(PedidoBase):
-    """
-    Cuando el garzón abre una mesa, SOLO le pedimos el ID de la mesa.
-    El estado de pago no debe ser manipulable por el frontend en este punto.
-    """
-    pass
-
 class PedidoResponse(PedidoBase, BaseSchema):
     id_pedido: int
     estado_pago_id_estpag: int # SÍ lo devolvemos para que el frontend sepa que quedó Pendiente
