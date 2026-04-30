@@ -1,6 +1,7 @@
 # main.py
 import time
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import OperationalError
 from database import engine, Base, get_db, SessionLocal 
@@ -46,6 +47,19 @@ app = FastAPI(
     title="GastroMetric API",
     description="Backend para el sistema de gestión de restaurantes",
     version="1.0.0"
+)
+
+# ==========================================
+# Configuración de CORS (Cross-Origin Resource Sharing)
+# ==========================================
+# Esto permite que tu frontend y los de tu grupo puedan hacer peticiones a esta API
+# sin ser bloqueados por el navegador por políticas de seguridad.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permite solicitudes de cualquier origen (URL). En producción, aquí se ponen los dominios permitidos.
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos los métodos HTTP (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],  # Permite todos los headers en las peticiones
 )
 
 # ==========================================
