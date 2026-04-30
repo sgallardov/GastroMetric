@@ -67,9 +67,17 @@ def seed_data(db: Session):
         db.add_all([
             models.EstadoCocina(desc_estcoc="Pendiente"), # ID 1
             models.EstadoCocina(desc_estcoc="Preparando"),# ID 2
-            models.EstadoCocina(desc_estcoc="Listo")      # ID 3
+            models.EstadoCocina(desc_estcoc="Listo"),     # ID 3
+            models.EstadoCocina(desc_estcoc="Cancelado")  # ID 4
         ])
         print("✅ Estados de cocina configurados")
+
+    # 8. ACCIONES DE AUDITORÍA
+    if db.query(models.AccionAuditoria).count() == 0:
+        db.add_all([
+            models.AccionAuditoria(id_tipacc=1, desc_tipacc="Eliminar Producto")
+        ])
+        print("✅ Acciones de auditoría configuradas")
 
     # Guardamos todo en la base de datos
     db.commit()

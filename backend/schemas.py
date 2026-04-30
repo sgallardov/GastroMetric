@@ -121,3 +121,28 @@ class PedidoResponse(PedidoBase, BaseSchema):
     estado_pago_id_estpag: int # SÍ lo devolvemos para que el frontend sepa que quedó Pendiente
     hora_apertura: datetime
     detalles: List[DetallePedidoResponse] = []
+
+class CheckoutResponse(BaseModel):
+    pedido_id: int
+    mesa_id: int
+    subtotal: int
+    iva: float
+    propina_sugerida: float
+    total: float
+
+# ==========================================
+# 6. ESQUEMAS DE AUDITORÍA Y CANCELACIÓN
+# ==========================================
+
+class CancelacionDetalleRequest(BaseModel):
+    usuario_id: int
+    justificacion: str
+
+class RegistroAuditoriaResponse(BaseSchema):
+    id_auditoria: int
+    fecha_auditoria: datetime
+    justificacion: str
+    usuario_id_usuario: int
+    accion_id_tipacc: int
+    pedido_id_pedido: Optional[int] = None
+    producto_id_producto: Optional[int] = None

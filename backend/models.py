@@ -15,6 +15,16 @@ class AccionAuditoria(Base):
     id_tipacc = Column(SMALLINT, primary_key=True)
     desc_tipacc = Column(String(20), nullable=False)
 
+class RegistroAuditoria(Base):
+    __tablename__ = "registro_auditoria"
+    id_auditoria = Column(Integer, primary_key=True)
+    fecha_auditoria = Column(DateTime, server_default=func.now())
+    justificacion = Column(String(255), nullable=False)
+    usuario_id_usuario = Column(Integer, ForeignKey("usuario.id_usuario"), nullable=False)
+    accion_id_tipacc = Column(SMALLINT, ForeignKey("accion_auditoria.id_tipacc"), nullable=False)
+    pedido_id_pedido = Column(Integer, ForeignKey("pedido.id_pedido"), nullable=True)
+    producto_id_producto = Column(Integer, ForeignKey("producto.id_producto"), nullable=True)
+
 class EstadoCocina(Base):
     __tablename__ = "estado_cocina"
     id_estcoc = Column(SMALLINT, primary_key=True)

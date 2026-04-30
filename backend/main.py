@@ -257,3 +257,103 @@ def agregar_item_a_pedido(pedido_id: int, item: schemas.DetallePedidoCreate, db:
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al guardar el detalle: {str(e)}")
+
+@app.get("/mesas/{mesa_id}/checkout", response_model=schemas.CheckoutResponse)
+def calcular_checkout_mesa(mesa_id: int, db: Session = Depends(get_db)):
+    """
+    Calcula el subtotal, IVA (19%) y propina sugerida (10%) para una mesa abierta.
+    """
+    # 1. Buscar la mesa
+    mesa = db.query(models.Mesa).filter(models.Mesa.id_mesa == mesa_id).first()
+    if not mesa:
+        raise HTTPException(status_code=404, detail="La mesa no existe.")
+        
+    # 2. Buscar el pedido activo de la mesa (estado de pago 2 = Pendiente)
+    pedido = db.query(models.Pedido).filter(
+        models.Pedido.mesa_id_mesa == mesa_id,
+        models.Pedido.estado_pago_id_estpag == 2
+    ).first()
+    
+    if not pedido:
+        raise HTTPException(status_code=400, detail="La mesa no tiene pedidos pendientes.")
+        
+    # 3. Calcular el subtotal sumando (precio * cantidad) de cada detalle
+    # IMPORTANTE: Se ignoran los ítems con estado de cocina 4 ("Cancelado")
+    subtotal = 0
+    for detalle in pedido.detalles:
+        if detalle.estado_cocina_id_estcoc != 4:
+            subtotal += (detalle.precio_detped * detalle.cantidad_detped)
+        
+    # 4. Calcular IVA (19%)
+    iva = subtotal * 0.19
+    
+    # 5. Calcular propina sugerida (10%)
+    propina_sugerida = subtotal * 0.10
+    
+    # 6. Calcular total final
+    total = subtotal + iva + propina_sugerida
+    
+    return {
+        "pedido_id": pedido.id_pedido,
+        "mesa_id": mesa.id_mesa,
+        "subtotal": subtotal,
+        "iva": iva,
+        "propina_sugerida": propina_sugerida,
+        "total": total
+    }
+
+# ==========================================
+# 7. MÓDULO DE AUDITORÍA Y CANCELACIONES
+# ==========================================
+
+@app.post("/pedidos/{pedido_id}/detalles/{detalle_id}/cancelar", response_model=schemas.DetallePedidoResponse)
+def cancelar_item_pedido(
+    pedido_id: int, 
+    detalle_id: int, 
+    cancelacion: schemas.CancelacionDetalleRequest, 
+    db: Session = Depends(get_db)
+):
+    """
+    Cancela un ítem del pedido, devuelve el stock y guarda la justificación en auditoría.
+    """
+    # 1. Buscar el detalle del pedido
+    detalle = db.query(models.DetallePedido).filter(
+        models.DetallePedido.id_detped == detalle_id,
+        models.DetallePedido.pedido_id_pedido == pedido_id
+    ).first()
+    
+    if not detalle:
+        raise HTTPException(status_code=404, detail="El ítem del pedido no existe.")
+        
+    if detalle.estado_cocina_id_estcoc == 4:
+        raise HTTPException(status_code=400, detail="Este ítem ya ha sido cancelado previamente.")
+
+    # 2. Buscar el producto para devolverle el stock
+    producto = db.query(models.Producto).filter(models.Producto.id_producto == detalle.producto_id_producto).first()
+    if producto:
+        producto.stock_producto += detalle.cantidad_detped
+
+    # 3. Cambiar estado a "Cancelado" (ID 4) en vez de borrar el registro físico
+    detalle.estado_cocina_id_estcoc = 4
+
+    # 4. Registrar la acción en la Auditoría
+    nuevo_registro = models.RegistroAuditoria(
+        justificacion=cancelacion.justificacion,
+        usuario_id_usuario=cancelacion.usuario_id,
+        accion_id_tipacc=1, # 1 = Eliminar Producto
+        pedido_id_pedido=pedido_id,
+        producto_id_producto=detalle.producto_id_producto
+    )
+    db.add(nuevo_registro)
+    
+    # 5. Guardar todo
+    db.commit()
+    db.refresh(detalle)
+    return detalle
+
+@app.get("/auditoria/", response_model=List[schemas.RegistroAuditoriaResponse])
+def listar_auditoria(db: Session = Depends(get_db)):
+    """
+    Lista el historial de cancelaciones y modificaciones para el control del administrador.
+    """
+    return db.query(models.RegistroAuditoria).all()
