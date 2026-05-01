@@ -3,7 +3,7 @@
     { 
     "id_mesa": 2, 
     "numero_mesa": 2, 
-    "estado": "ocupada", 
+    "estado": "libre", 
     "capacidad": 2,
     "pedidos": [
         { "nombre": "Hamburguesa Clásica", "cantidad": 2, "precio": 12990 },
@@ -14,7 +14,7 @@
     { 
     "id_mesa": 4, 
     "numero_mesa": 4, 
-    "estado": "ocupada", 
+    "estado": "libre", 
     "capacidad": 4,
     "pedidos": [
         { "nombre": "Pizza Margarita", "cantidad": 1, "precio": 15990 },
@@ -22,5 +22,5 @@
     ]
     },
     { "id_mesa": 5, "numero_mesa": 5, "estado": "libre", "capacidad": 2, "pedidos": [] },
-    { "id_mesa": 6, "numero_mesa": 6, "estado": "ocupada", "capacidad": 8, "pedidos": [] }
+    { "id_mesa": 6, "numero_mesa": 6, "estado": "libre", "capacidad": 8, "pedidos": [] }
 ]

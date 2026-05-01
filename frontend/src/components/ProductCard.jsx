@@ -18,7 +18,7 @@ export function ProductCard({ producto, onAgregar }) {
       {/*Boton para agregar un producto*/}
       {/*onClick Es el "escuchador" de eventos, reacciona cuando se le hace click*/}
       <button 
-      // Al hacer clic, se envia ESTE producto específico a la función del carrito
+      
         onClick={() => onAgregar(producto)}  
         className="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition-colors font-medium"
       >

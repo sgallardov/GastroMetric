@@ -1,85 +1,78 @@
 import { useState } from 'react';
-import { ProductCard } from './ProductCard';
-import productosData from '../mocks/productos.json';
+import productosData from '../mocks/productos.json'; 
 
 export function ListaProductos({ onAgregar }) {
-  // 1. ESTADOS: Memoria para lo que se escribe y selecciona
-  const [busqueda, setBusqueda] = useState(''); //crea memoria en blanco para guardar lo que el garzón escriba en la barra de búsqueda
-  const [categoriaActiva, setCategoriaActiva] = useState('Todos'); //crea otra memoria para saber qué botón está presionado, por defecto esta en "Todos" para que la carta se vea completa al entrar
+  const [busqueda, setBusqueda] = useState('');
+  const [categoriaActiva, setCategoriaActiva] = useState('Todas');
 
-  //categorías que aparecerán en los botones
-  const categorias = ['Todos', 'Desayunos', 'Bebidas', 'Postres', 'Pastelería'];
+  const categorias = ['Todas', ...new Set(productosData.map(p => p.categoria).filter(Boolean))];
 
-  // 2. LÓGICA DE FILTRADO
-  const productosFiltrados = productosData.filter((producto) => { //función de JS que revisa lista(productosData) y devuelve solo con los elementos que pasen una prueba
-
-    const coincideTexto = producto.nombre.toLowerCase().includes(busqueda.toLowerCase()); //Filtro 1: Convierte todo a minúsculas y revisa si la palabra escrita está dentro del nombre del producto.
-    
-    const coincideCategoria = categoriaActiva === 'Todos' || producto.categoria === categoriaActiva; //Filtro 2: ¿La categoría del producto coincide con el botón presionado? (O si estamos en "Todos")
-    
-    return coincideTexto && coincideCategoria;  //el producto solo se mostrará si cumple AMBAS condiciones a la vez coincideTexto y coincideCategoria
+  const productosFiltrados = productosData.filter(producto => {
+    const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.toLowerCase());
+    const coincideCategoria = categoriaActiva === 'Todas' || producto.categoria === categoriaActiva;
+    return coincideBusqueda && coincideCategoria;
   });
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+    <div className="flex flex-col bg-white p-4 rounded-xl shadow-sm border border-gray-100">
       
-      <h2 className="text-2xl font-bold text-yellow-500 mb-6">
-        Catálogo de Productos
-      </h2>
-
-      {/* BARRA DE BÚSQUEDA */}
-      <div className="mb-4">
+      {/* 1. BARRA DE BÚSQUEDA */}
+      <div className="mb-4 shrink-0">
         <input 
           type="text" 
-          placeholder="🔍 Buscar productos..." 
-          value={busqueda} //input es de solo lectura y refleja estrictamente el valor de la variable de estado 'busqueda'
-          onChange={(e) => setBusqueda(e.target.value)} //Actualiza la memoria cada vez que se presiona una tecla
-          className="w-full bg-gray-100 text-gray-700 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-yellow-400 transition-all"
+          placeholder="🔍 Buscar producto..." 
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-gray-50 text-gray-700"
         />
       </div>
 
-      {/* BOTONES DE CATEGORÍAS */}
-      <div className="flex bg-gray-100 p-1 rounded-lg mb-6 overflow-x-auto">
-        {/*se itera sobre el arreglo 'categorias' para generar los botones automáticamente */}
-        {categorias.map((cat) => ( 
+      {/* 2. BARRA DE CATEGORÍAS (CORREGIDA) */}
+      {/* CORRECCIÓN 1: [&::-webkit-scrollbar]:hidden oculta la barra fea nativa.
+          [-ms-overflow-style:none] y [scrollbar-width:none] lo ocultan en Firefox/Edge.
+      */}
+      <div className="flex overflow-x-auto gap-2 mb-4 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] shrink-0">
+        {categorias.map(cat => (
           <button
-          // 'key' es obligatorio en React al usar .map() para optimizar el rendimiento del renderizado
             key={cat}
-            // Al hacer clic, actualizamos la variable de estado global con la categoría de este botón
             onClick={() => setCategoriaActiva(cat)}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-all whitespace-nowrap ${
-              categoriaActiva === cat //verifica si la categoría almacenada en la memoria de React es igual a la categoría de este botón en particular
-                ? 'bg-white text-yellow-500 shadow-sm' // Estilo si está activo
-                : 'text-gray-500 hover:text-gray-700' // Estilo si está inactivo
+            // CORRECCIÓN 2: 'shrink-0' obliga al botón a mantener su tamaño real y no aplastarse
+            className={`shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+              categoriaActiva === cat 
+                ? 'bg-yellow-500 text-white shadow-md' 
+                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'
             }`}
           >
-            {/* Imprimimos el nombre de la categoría en la interfaz */}
             {cat}
           </button>
         ))}
       </div>
+
+      {/* 3. GRILLA COMPACTA (CORREGIDA) */}
+      {/* CORRECCIÓN 3: Quitamos el overflow-y-auto de aquí para evitar la "doble barra" de scroll */}
+      <div className="grid grid-cols-2 gap-3 pb-2">
+        {productosFiltrados.map((producto, index) => (
+          <button
+            key={producto.id || index}
+            onClick={() => onAgregar(producto)}
+            className="bg-white border border-gray-200 rounded-xl p-3 text-left hover:border-yellow-400 hover:shadow-md transition-all active:scale-95 flex flex-col justify-between min-h-[5.5rem]"
+          >
+            <span className="font-semibold text-gray-800 text-sm leading-tight line-clamp-2">
+              {producto.nombre}
+            </span>
+            <span className="text-yellow-600 font-bold mt-2 text-lg">
+              ${producto.precio.toLocaleString('es-CL')}
+            </span>
+          </button>
+        ))}
+        
+        {productosFiltrados.length === 0 && (
+          <div className="col-span-full text-center py-8 text-gray-400 italic">
+            No se encontraron productos...
+          </div>
+        )}
+      </div>
       
-      {/* GRILLA DE PRODUCTOS */}
-      {/* se verifica la cantidad de productos en lista ya filtrada */}
-      {productosFiltrados.length === 0 ? (
-        //0 productos: se muestra el Empty State para evitar pantalla en blanco
-        <div className="text-center py-10 text-gray-500">
-          No se encontraron productos que coincidan con tu búsqueda.
-        </div>
-      ) : (
-        //si hay 1 o más productos: muestra la grilla interactiva
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/*se itera sobre la lista filtrada*/}
-          {productosFiltrados.map((prod) => (
-            <ProductCard
-              key={prod.id}         // Identificador único obligatorio para React
-              producto={prod}       // Enviamos los datos (nombre, precio) a la tarjeta.
-              onAgregar={onAgregar} 
-              
-            />
-          ))}
-        </div>
-      )}
-    </div> 
+    </div>
   );
 }
