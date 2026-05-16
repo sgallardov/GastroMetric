@@ -32,9 +32,9 @@ def seed_data(db: Session):
     # 4. CATEGORÍAS (Para organizar la carta/menú)
     if db.query(models.Categoria).count() == 0:
         db.add_all([
-            models.Categoria(id_categoria=1, desc_categoria="Bebidas"),
-            models.Categoria(id_categoria=2, desc_categoria="Comida"),
-            models.Categoria(id_categoria=3, desc_categoria="Otros")
+            models.Categoria(desc_categoria="Bebidas"),
+            models.Categoria( desc_categoria="Comida"),
+            models.Categoria(desc_categoria="Otros")
         ])
         print("✅ Categorías configuradas")
 
@@ -50,4 +50,26 @@ def seed_data(db: Session):
         db.add(admin_user)
         print("✅ Usuario 'admin' creado para el equipo")
 
+    db.commit()
+
+    # ... (tus sembrados anteriores) ...
+
+    # 6. ESTADOS DE PAGO (Vital para abrir y cerrar mesas)
+    if db.query(models.EstadoPago).count() == 0:
+        db.add_all([
+            models.EstadoPago(desc_estpag="Pagado"),    # Postgres le asignará el ID 1
+            models.EstadoPago(desc_estpag="Pendiente")  # Postgres le asignará el ID 2
+        ])
+        print("✅ Estados de pago configurados")
+
+    # 7. ESTADOS DE COCINA (Vital para cuando agreguemos comida)
+    if db.query(models.EstadoCocina).count() == 0:
+        db.add_all([
+            models.EstadoCocina(desc_estcoc="Pendiente"), # ID 1
+            models.EstadoCocina(desc_estcoc="Preparando"),# ID 2
+            models.EstadoCocina(desc_estcoc="Listo")      # ID 3
+        ])
+        print("✅ Estados de cocina configurados")
+
+    # Guardamos todo en la base de datos
     db.commit()

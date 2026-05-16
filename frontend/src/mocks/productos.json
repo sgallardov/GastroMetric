@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "nombre": "Café Americano",
+    "descripcion": "Café de grano recién molido (250ml).",
+    "precio": 2500,
+    "categoria": "Cafetería",
+    "imagen": "/img/americano.jpg",
+    "disponible": true
+  },
+  {
+    "id": 2,
+    "nombre": "Capuchino Vainilla",
+    "descripcion": "Espresso con leche texturizada y syrup de vainilla.",
+    "precio": 3200,
+    "categoria": "Cafetería",
+    "imagen": "/img/capuchino.jpg",
+    "disponible": true
+  },
+  {
+    "id": 3,
+    "nombre": "Kuchen de Nuez",
+    "descripcion": "Receta sureña tradicional con masa dulce y nueces.",
+    "precio": 3800,
+    "categoria": "Pastelería",
+    "imagen": "/img/kuchen.jpg",
+    "disponible": true
+  },
+  {
+    "id": 4,
+    "nombre": "Sándwich Ave Palta",
+    "descripcion": "Pollo desmenuzado con palta hass en pan de molde tostado.",
+    "precio": 4500,
+    "categoria": "Sándwiches",
+    "imagen": "/img/ave-palta.jpg",
+    "disponible": true
+  },
+  {
+    "id": 5,
+    "nombre": "Paila de Huevos",
+    "descripcion": "Tres huevos revueltos acompañados de tostadas y mantequilla.",
+    "precio": 3500,
+    "categoria": "Desayunos",
+    "imagen": "/img/paila.jpg",
+    "disponible": true
+  },
+  {
+    "id": 6,
+    "nombre": "Jugo Natural Frambuesa",
+    "descripcion": "Jugo de frambuesas locales, endulzado a elección.",
+    "precio": 3000,
+    "categoria": "Bebidas",
+    "imagen": "/img/jugo-frambuesa.jpg",
+    "disponible": true
+  },
+ {
+    "id": 7,
+    "nombre": "Troso de Kuchen de Nuez",
+    "descripcion": "Receta sureña tradicional con masa dulce y nueces.",
+    "precio": 2500,
+    "categoria": "Postres",
+    "imagen": "/img/kuchen.jpg",
+    "disponible": true
+  },
+    {
+    "id": 8,
+    "nombre": "Pie de Limon",
+    "descripcion": "Receta sureña tradicional con masa dulce.",
+    "precio": 12000,
+    "categoria": "Pastelería",
+    "imagen": "/img/jugo-frambuesa.jpg",
+    "disponible": true
+  },
+{
+    "id": 9,
+    "nombre": "Jugo Natural Arandanos",
+    "descripcion": "Jugo de frambuesas locales, endulzado a elección.",
+    "precio": 3000,
+    "categoria": "Bebidas",
+    "imagen": "/img/jugo-frambuesa.jpg",
+    "disponible": true
+  },
+  {
+    "id": 10,
+    "nombre": "Jugo Natural Naranja",
+    "descripcion": "Jugo de frambuesas locales, endulzado a elección.",
+    "precio": 3000,
+    "categoria": "Bebidas",
+    "imagen": "/img/jugo-frambuesa.jpg",
+    "disponible": true
+  }
+]
